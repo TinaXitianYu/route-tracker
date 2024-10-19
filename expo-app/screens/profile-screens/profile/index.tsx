@@ -126,11 +126,11 @@ type BottomTabs = {
 const bottomTabsList: BottomTabs[] = [
   {
     iconName: HomeIcon,
-    iconText: "Navigate",
+    iconText: "Schedule",
   },
   {
     iconName: InboxIcon,
-    iconText: "Track Path",
+    iconText: "Navigate",
   },
   {
     iconName: ProfileIcon,
@@ -1424,7 +1424,7 @@ const ModalComponent = ({
 export const Profile = () => {
   return (
     <SafeAreaView className="h-full w-full">
-      <DashboardLayout title="Navigate" isSidebarVisible={true}>
+      <DashboardLayout title="Schedule" isSidebarVisible={true}>
         <MainContent />
       </DashboardLayout>
       <MobileFooter footerIcons={bottomTabsList} />

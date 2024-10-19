@@ -1,2 +1,2 @@
-import { NewsAndFeed } from "@/screens/news-feed/news-and-feed";
+import { NewsAndFeed } from "@/screens/schedule/schedule";
 export default NewsAndFeed;
