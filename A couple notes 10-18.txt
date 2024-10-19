@@ -4,15 +4,15 @@ Some Notes 10/18:
 
 Backend:
 
-- database still needs touch up, might have to switch to supabase
-	- firebase has various dependency issues which might cause problems on the frontend
-- consider any other user statistics that we store so when they look at profile page they can view how the app has helped them e.g. routes, time saved, etc.
-- the code written for class schedule needs to be applied to the profile page-> preferences section
-- login and signup functions need to be tweaked if not using firebase
-- consider both geofencing and real time location tracking? (geofencing for when you arrive at a building)
-- mapbox integration needs to be deployed on both the "navigate" and "track path" pages
-- if time permits, maybe real time elevation data? This could help with different floors and potentially even better tracking
-- converting class schedule to routes
+- database still needs touch up, might have to switch to supabase (Doran)
+	- firebase has various dependency issues which might cause problems on the frontend (Doran)
+- consider any other user statistics that we store so when they look at profile page they can view how the app has helped them e.g. routes, time saved, etc. (n/a)
+- the code written for class schedule needs to be applied to the profile page-> preferences section (Tina + 明月）
+- login and signup functions need to be tweaked if not using firebase (Doran)
+- consider both geofencing and real time location tracking? (geofencing for when you arrive at a building) (Doran)
+- mapbox integration needs to be deployed on both the "navigate" and "track path" pages (Doran, Tina, 明月）
+- if time permits, maybe real time elevation data? This could help with different floors and potentially even better tracking (Doran)
+- converting class schedule to routes (Doran)
 	- A few options (show time and distance for each one):
 		- creating a route based on routes provided by google maps (can just concatenate a few 			  locations into one trip)
 		- creating a route based on what other people have done (crowdsourcing)
@@ -20,35 +20,36 @@ Backend:
 		- creating a dynamic route that includes food or other things
 		- creating a route that links to your google calendar which can include your meetings as
 		  well (if this is the case we might have to export the class schedule info to google 			  calendar in some way and then just treat all events/classes the same when it makes an 		  initial route)
-- profile settings
+- profile settings (Sam)
 	- only allow change password, no email
 	- clear data/delete account
 	- look through history of routes (similar to uber history functionality)
-- class schedule settings
+- class schedule settings (Tina, 明月）
 	- have the current schedule up, if nothing there then ask user to supply something or not
 	- be able to remove and/or modify the current schedule
-- advanced route settings (beta functions - not many ideas yet)
+- advanced route settings (anyone)
 	- icon is not added in yet but the functionality is as follows...
 	- allow for routes to be dynamically changed when you are using the navigate function (would need 	to consider more data/other api integrations e.g. traffic accident, event proceedings, etc.)
-- crud capabilities for database (specifically routes)
+	- set route to public or private (if public can be used by others)
+- crud capabilities for database (specifically routes) (Doran)
 
 Frontend:
 
-- icons for the navigate+track path (maybe profile but already looks ok) need to be adjusted
-- icons for settings and class schedule settings need to be changed
-- the current page icon (Navigate, Track Route, Profile) should have a dark "red" icon when on that page and white icon when not on that page
-- both the navigate and track path pages have a base UI with no functionality, will have to modify it once the map integration also works
-- the "back arrow" button for the splash page is not aligned the same with the back arrows for the login and sign on pages
-- once we get some kind of map integration running we can think of using a video gif (or something else, open to suggestions) in the splash page
-- creating a different splash page or very minimal page which is kind of like a loading screen before you enter the splash/loading page
-- pulling multiple routes for a pair of locations that user can toggle through (need map integration to work or need to decide on what map integration to use)
+- icons for the navigate+track path (maybe profile but already looks ok) need to be adjusted (Samantha)
+- icons for settings and class schedule settings need to be changed (Samanta)
+- the current page icon (Navigate, Track Route, Profile) should have a dark "red" icon when on that page and white icon when not on that page (Samantha)
+- both the navigate and track path pages have a base UI with no functionality, will have to modify it once the map integration also works (Samantha)
+- the "back arrow" button for the splash page is not aligned the same with the back arrows for the login and sign on pages (Samantha)
+- once we get some kind of map integration running we can think of using a video gif (or something else, open to suggestions) in the splash page (Samantha)
+- creating a different splash page or very minimal page which is kind of like a loading screen before you enter the splash/loading page (Samantha)
+- pulling multiple routes for a pair of locations that user can toggle through (need map integration to work or need to decide on what map integration to use) (Samantha)
 
 Other Notes:
-- currently buttons when pressed become white/transparent (maybe we can adjust it where when pressed buttons shrink in size slightly)
-- get a android/ios simulator up and running on your local machine to test versions of the app
-- need to modify the app color palette (e.g. primary, secondary, tertiary colors from the washu website)
+- currently buttons when pressed become white/transparent (maybe we can adjust it where when pressed buttons shrink in size slightly) (Samanta)
+- get a android/ios simulator up and running on your local machine to test versions of the app (Tina: ios, Sam: ios, 明月：web, Doran: android)
+- need to modify the app color palette (e.g. primary, secondary, tertiary colors from the washu website) (Samantha)
 	- problem is though that modifying the colors is in the components -> ui -> gluestack-ui-provider > config.ts file)
 	- could only get custom colors to work with primary or secondary codes of 500 and 600
-- think about cases where it would actually work e.g. extreme cases where the route that apple or google maps provides is not optimal or would waste your time if you followed it exactly
-- think about target audience and more about the need for a product/app like this for students or others
-- consider extensiblity
+- think about cases where it would actually work e.g. extreme cases where the route that apple or google maps provides is not optimal or would waste your time if you followed it exactly (anyone)
+- think about target audience and more about the need for a product/app like this for students or others (anyone)
+- consider extensiblity (anyone)
