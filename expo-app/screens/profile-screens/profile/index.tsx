@@ -307,7 +307,7 @@ function MobileFooter({ footerIcons }: { footerIcons: any }) {
             <Pressable
               className="px-0.5 flex-1 flex-col items-center"
               key={index}
-              onPress={() => router.push("/news-feed/news-and-feed")}
+              onPress={() => router.push("/home-map/map/")}
             >
               <Icon
                 as={item.iconName}
