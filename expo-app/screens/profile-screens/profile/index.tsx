@@ -126,20 +126,11 @@ type BottomTabs = {
 const bottomTabsList: BottomTabs[] = [
   {
     iconName: HomeIcon,
-    iconText: "Home",
-  },
-
-  {
-    iconName: GlobeIcon,
-    iconText: "Community",
+    iconText: "Navigate",
   },
   {
     iconName: InboxIcon,
-    iconText: "Inbox",
-  },
-  {
-    iconName: HeartIcon,
-    iconText: "Favourite",
+    iconText: "Track Path",
   },
   {
     iconName: ProfileIcon,
@@ -147,25 +138,17 @@ const bottomTabsList: BottomTabs[] = [
   },
 ];
 interface UserStats {
-  friends: string;
-  friendsText: string;
-  followers: string;
-  followersText: string;
-  rewards: string;
-  rewardsText: string;
-  posts: string;
-  postsText: string;
+  routes: string;
+  routesText: string; 
+  time_saved: string;
+  time_savedText: string;
 }
 const userData: UserStats[] = [
   {
-    friends: "45K",
-    friendsText: "Friends",
-    followers: "500M",
-    followersText: "Followers",
-    rewards: "40",
-    rewardsText: "Rewards",
-    posts: "346",
-    postsText: "Posts",
+    routes: "5", // we're going to have to pull this from the database
+    routesText: "Routes",
+    time_saved: "500 minutes", // we're going to have to calculate this value from the database
+    time_savedText: "Time Saved",
   },
 ];
 
@@ -380,7 +363,7 @@ function MobileHeader(props: MobileHeaderProps) {
         </Pressable>
         <Text className="text-xl">{props.title}</Text>
       </HStack>
-      <Icon as={HeartIcon} className="h-8 w-20" />
+      {/* <Icon as={HeartIcon} className="h-8 w-20" /> */}
     </HStack>
   );
 }
@@ -421,11 +404,6 @@ const userSchema = z.object({
     .max(20, "Zipcode must be less than 20 characters"),
 });
 
-interface AccountCardType {
-  iconName: LucideIcon | typeof Icon;
-  subText: string;
-  endIcon: LucideIcon | typeof Icon;
-}
 const accountData: AccountCardType[] = [
   {
     iconName: InboxIcon,
@@ -434,12 +412,7 @@ const accountData: AccountCardType[] = [
   },
   {
     iconName: GlobeIcon,
-    subText: "Notifications",
-    endIcon: ChevronRightIcon,
-  },
-  {
-    iconName: PhoneIcon,
-    subText: "Rewards",
+    subText: "Class Schedule Settings",
     endIcon: ChevronRightIcon,
   },
 ];
@@ -483,12 +456,13 @@ const MainContent = () => {
                 />
                 <AvatarBadge />
               </Avatar>
+              {/* going have to pull current session account variables */}
               <VStack className="gap-1 w-full items-center">
                 <Text size="2xl" className="font-roboto text-dark">
-                  Alexander Leslie
+                  Test User 
                 </Text>
                 <Text className="font-roboto text-sm text-typograpphy-700">
-                  United States
+                  China
                 </Text>
               </VStack>
               <>
@@ -497,107 +471,28 @@ const MainContent = () => {
                     <HStack className="items-center gap-1" key={index}>
                       <VStack className="py-3 px-4 items-center" space="xs">
                         <Text className="text-dark font-roboto font-semibold justify-center items-center">
-                          {item.friends}
+                          {item.routes}
                         </Text>
                         <Text className="text-dark text-xs font-roboto">
-                          {item.friendsText}
+                          {item.routesText}
                         </Text>
                       </VStack>
                       <Divider orientation="vertical" className="h-10" />
                       <VStack className="py-3 px-4 items-center" space="xs">
                         <Text className="text-dark font-roboto font-semibold">
-                          {item.followers}
+                          {item.time_saved}
                         </Text>
                         <Text className="text-dark text-xs font-roboto">
-                          {item.followersText}
-                        </Text>
-                      </VStack>
-                      <Divider orientation="vertical" className="h-10" />
-                      <VStack className="py-3 px-4 items-center" space="xs">
-                        <Text className="text-dark font-roboto font-semibold">
-                          {item.rewards}
-                        </Text>
-                        <Text className="text-dark text-xs font-roboto">
-                          {item.rewardsText}
-                        </Text>
-                      </VStack>
-                      <Divider orientation="vertical" className="h-10" />
-                      <VStack className="py-3 px-4 items-center" space="xs">
-                        <Text className="text-dark font-roboto font-semibold">
-                          {item.posts}
-                        </Text>
-                        <Text className="text-dark text-xs font-roboto">
-                          {item.postsText}
+                          {item.time_savedText}
                         </Text>
                       </VStack>
                     </HStack>
                   );
                 })}
               </>
-              <Button
-                variant="outline"
-                action="secondary"
-                onPress={() => setShowModal(true)}
-                className="gap-3 relative"
-              >
-                <ButtonText className="text-dark">Edit Profile</ButtonText>
-                <ButtonIcon as={EditIcon} />
-              </Button>
             </VStack>
           </Center>
           <VStack className="mx-6" space="2xl">
-            <HStack
-              className="py-5 px-6 border rounded-xl border-border-300 justify-between items-center"
-              space="2xl"
-            >
-              <HStack space="2xl" className="items-center">
-                <Box className="md:h-20 md:w-20 h-10 w-10">
-                  <Image
-                    source={require("@/assets/profile-screens/profile/image1.png")}
-                    height={"100%"}
-                    width={"100%"}
-                    alt="Promo Image"
-                  />
-                </Box>
-                <VStack>
-                  <Text className="text-typography-900 text-lg" size="lg">
-                    Invite & get rewards
-                  </Text>
-                  <Text className="font-roboto text-sm md:text-[16px]">
-                    Your code r45dAsdeK8
-                  </Text>
-                </VStack>
-              </HStack>
-              <Button className="p-0 md:py-2 md:px-4 bg-background-0 active:bg-background-0 md:bg-background-900 ">
-                <ButtonText className="md:text-typography-0 text-typography-800 text-sm">
-                  Invite
-                </ButtonText>
-              </Button>
-            </HStack>
-            <Heading className="font-roboto" size="xl">
-              Account
-            </Heading>
-            <VStack className="py-2 px-4 border rounded-xl border-border-300 justify-between items-center">
-              {accountData.map((item, index) => {
-                return (
-                  <React.Fragment key={index}>
-                    <HStack
-                      space="2xl"
-                      className="justify-between items-center w-full flex-1 py-3 px-2"
-                    >
-                      <HStack className="items-center" space="md">
-                        <Icon as={item.iconName} className="stroke-[#747474]" />
-                        <Text size="lg">{item.subText}</Text>
-                      </HStack>
-                      <Icon as={item.endIcon} />
-                    </HStack>
-                    {accountData.length - 1 !== index && (
-                      <Divider className="my-1" />
-                    )}
-                  </React.Fragment>
-                );
-              })}
-            </VStack>
             <Heading className="font-roboto" size="xl">
               Preferences
             </Heading>
@@ -608,7 +503,6 @@ const MainContent = () => {
                     <HStack
                       space="2xl"
                       className="justify-between items-center w-full flex-1 py-3 px-2"
-                      key={index}
                     >
                       <HStack className="items-center" space="md">
                         <Icon as={item.iconName} className="stroke-[#747474]" />
@@ -1530,7 +1424,7 @@ const ModalComponent = ({
 export const Profile = () => {
   return (
     <SafeAreaView className="h-full w-full">
-      <DashboardLayout title="Company Name" isSidebarVisible={true}>
+      <DashboardLayout title="Navigate" isSidebarVisible={true}>
         <MainContent />
       </DashboardLayout>
       <MobileFooter footerIcons={bottomTabsList} />

@@ -1,48 +1,32 @@
+// current issue: only two colors 500, 600 defined for each color palette class
 "use client";
 import { vars } from "nativewind";
 
 export const config = {
   light: vars({
-    "--color-primary-0": "#B3B3B3",
-    "--color-primary-50": "#999999",
-    "--color-primary-100": "#808080",
-    "--color-primary-200": "#737373",
-    "--color-primary-300": "#666666",
-    "--color-primary-400": "#525252",
-    "--color-primary-500": "#333333",
-    "--color-primary-600": "#292929",
-    "--color-primary-700": "#1F1F1F",
-    "--color-primary-800": "#0D0D0D",
-    "--color-primary-900": "#0A0A0A",
-    "--color-primary-950": "#080808",
+    /* Primary */
+    "--color-primary-500": "#a51417", // red
+    "--color-primary-600": "#eeeeee", // light grey
 
     /* Secondary  */
-    "--color-secondary-0": "#FEFFFF",
-    "--color-secondary-50": "#F1F2F2",
-    "--color-secondary-100": "#E7E8E8",
-    "--color-secondary-200": "#DBDBDB",
-    "--color-secondary-300": "#AFB0B0",
-    "--color-secondary-400": "#727373",
-    "--color-secondary-500": "#5E5F5F",
-    "--color-secondary-600": "#515252",
-    "--color-secondary-700": "#3F4040",
-    "--color-secondary-800": "#272626",
-    "--color-secondary-900": "#181717",
-    "--color-secondary-950": "#0B0C0C",
+    "--color-secondary-500": "#ffcc00", // yellow
+    "--color-secondary-600": "#005f85", // blue
 
-    /* Tertiary */
-    "--color-tertiary-0": "#FFFAF5",
-    "--color-tertiary-50": "#FFF2E5",
-    "--color-tertiary-100": "#FFE9D5",
-    "--color-tertiary-200": "#FED1AA",
-    "--color-tertiary-300": "#FDB474",
-    "--color-tertiary-400": "#FB9D4B",
-    "--color-tertiary-500": "#E78128",
-    "--color-tertiary-600": "#D7751F",
-    "--color-tertiary-700": "#B4621A",
-    "--color-tertiary-800": "#824917",
-    "--color-tertiary-900": "#6C3D13",
-    "--color-tertiary-950": "#543112",
+    /* Tertiary, does not work right now*/
+    // "--color-tertiary-500": "#3deded", // dark grey
+    // "--color-tertiary-600": "#2b8282", // turquoise
+    // "--color-tertiary-0": "#FFFAF5",
+    // "--color-tertiary-50": "#FFF2E5",
+    // "--color-tertiary-100": "#FFE9D5",
+    // "--color-tertiary-200": "#FED1AA",
+    // "--color-tertiary-300": "#FDB474",
+    // "--color-tertiary-400": "#FB9D4B",
+    // "--color-tertiary-500": "#E78128",
+    // "--color-tertiary-600": "#D7751F",
+    // "--color-tertiary-700": "#B4621A",
+    // "--color-tertiary-800": "#824917",
+    // "--color-tertiary-900": "#6C3D13",
+    // "--color-tertiary-950": "#543112",
 
     /* Error */
     "--color-error-0": "#FEE9E9",
