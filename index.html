@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCR Course Schedule Extraction</title>
+</head>
+<body>
+    <h1>Course Schedule OCR Extraction</h1>
+    <input type="file" id="imageInput" accept="image/*" />
+    <button onclick="performOCR()">Extract Course Info</button>
+    <pre id="output">Extracted information will appear here...</pre>
+    <pre id="titlesOutput">Course Titles: </pre>
+    <pre id="timesOutput">Course Times: </pre>
+    <pre id="locationsOutput">Course Locations: </pre>
+
+    <!-- Include Tesseract.js from CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@v4.0.0/dist/tesseract.min.js"></script>
+    <script>
+        function performOCR() {
+            const input = document.getElementById('imageInput').files[0];
+            if (input) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = new Image();
+                    img.onload = function () {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+
+                        // Draw the image onto the canvas
+                        ctx.drawImage(img, 0, 0);
+
+                        // Convert image to grayscale
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        for (let i = 0; i < imageData.data.length; i += 4) {
+                            const avg = (imageData.data[i] + imageData.data[i + 1] + imageData.data[i + 2]) / 3;
+                            imageData.data[i] = avg; // Red
+                            imageData.data[i + 1] = avg; // Green
+                            imageData.data[i + 2] = avg; // Blue
+                        }
+                        ctx.putImageData(imageData, 0, 0);
+
+                        // Get the processed image as a data URL and pass it to Tesseract
+                        const processedImage = canvas.toDataURL();
+                        Tesseract.recognize(
+                            processedImage,
+                            'eng',
+                            {
+                                logger: (m) => console.log(m)
+                            }
+                        ).then(({ data: { text } }) => {
+                            const courseInfo = extractCourseInfo(text);
+                            document.getElementById('output').innerText = courseInfo;
+                        }).catch(err => {
+                            console.error(err);
+                            document.getElementById('output').innerText = "Error occurred while processing the image.";
+                        });
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(input);
+            } else {
+                alert('Please select an image file.');
+            }
+        }
+
+        // Function to extract course information from text
+        function extractCourseInfo(text) {
+            // Split text into lines
+            const lines = text.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+            
+            // Example: Extract course title, time, and building/room based on known patterns
+            const courses = [];
+            const courseLocationArray = [];
+            const courseTitleArray = [];
+            const courseTimeArray = [];
+            for (let i = 0; i < lines.length; i++) {
+                if (lines[i].includes("Enrolled")) {
+                    // Extract the course information after "Enrolled"
+                    const courseInfo = lines[i].split("Enrolled")[1].trim(); // Get the part after "Enrolled"
+
+                    // Split the course information into parts based on spaces
+                    const parts = courseInfo.split(/\s+/); // Split by whitespace
+
+                    // Reconstruct the title
+                    const titleParts = [];
+                    let j = 0;
+
+                    // Assuming course title ends before the time, which follows a common pattern
+                    while (j < parts.length && !parts[j].includes('.') && !parts[j].includes('|')) { // Match starts 
+                        titleParts.push(parts[j]);
+                        j++;
+                    }
+
+                    const courseTitle = titleParts.join(' '); // Join the title parts
+                    courseTitleArray.push(courseTitle);
+
+                    const timeParts = [];
+                    j = 0;
+                    while (j < parts.length) {
+                        if (parts[j].includes('-') && !parts[j].includes('Peer') && !parts[j].includes('Team')) {
+                            timeParts.push(parts[j]);
+                        }
+                        j++;
+                    }
+                    // The time part would typically be the next element after the title parts
+                    //const courseTime = parts.slice(j).join(' '); // Join remaining parts as time/location
+                    const courseTime = timeParts.join(' ');
+                    courseTimeArray.push(courseTime);
+                    const locationParts = [];
+                    j = 0;
+                    while (j < parts.length) {
+                        if (parts[j].includes('/')) {
+                            
+                            while (!parts[j].includes('-')) {
+                                locationParts.push(parts[j - 1]); // The building name is usually two steps before the room
+                                j--;
+                            }
+                            
+                            break;
+                        }
+                        j++;
+                    }
+
+                    locationParts.reverse();
+                    locationParts.shift();
+
+                    const courseLocation = locationParts.join(' ');
+                    courseLocationArray.push(courseLocation);
+
+                    // Push the extracted course data into the courses array
+                    courses.push({
+                        title: courseTitle,
+                        time: courseTime,
+                        buildingRoom: courseLocation
+                    });
+                }
+            }
+            //displaying all the components of the course arrays.
+          //displaying all the components of the course arrays.
+        const titlesOutput = document.getElementById('titlesOutput');
+        const timesOutput = document.getElementById('timesOutput');
+        const locationsOutput = document.getElementById('locationsOutput');
+ 
+        // Clear previous output
+        titlesOutput.innerText = "Course Titles:\n";
+        timesOutput.innerText = "Course Times:\n";
+        locationsOutput.innerText = "Course Locations:\n";
+
+        //Iterate over the arrays and add each element to the respective HTML elements
+        for (let i = 0; i < courseTitleArray.length; i++) {
+        titlesOutput.innerText += courseTitleArray[i] + "\n";
+         }
+
+        for (let i = 0; i < courseTimeArray.length; i++) {
+        timesOutput.innerText += courseTimeArray[i] + "\n";
+        }
+
+        for (let i = 0; i < courseLocationArray.length; i++) {
+        locationsOutput.innerText += courseLocationArray[i] + "\n";
+        }
+
+        const courseLocationDict = {};
+
+// Iterate over the courseLocationArray and populate the dictionary
+        courseLocationArray.forEach((location, index) => {
+        courseLocationDict[`course_${index}`] = location;  // Assign each location to a key like "course_0", "course_1", etc.
+      });
+//console.log(courseLocationDict);
+const courseTimeDict = {};
+
+// Iterate over the courseLocationArray and populate the dictionary
+        courseTimeArray.forEach((location, index) => {
+        courseTimeDict[`course_${index}`] = Time;  // Assign each location to a key like "course_0", "course_1", etc.
+      });
+
+      const courseTitleDict = {};
+
+// Iterate over the courseLocationArray and populate the dictionary
+        courseTitleArray.forEach((location, index) => {
+        courseTitleDict[`course_${index}`] = Title;  // Assign each location to a key like "course_0", "course_1", etc.
+      });
+
+            // Format extracted information into a readable format
+            return courses.map(course => 
+                `Title: ${course.title}\nTime: ${course.time}\nLocation: ${course.buildingRoom}\n`
+            ).join('\n');
+        }
+    </script>
+</body>
+</html>
