@@ -1,30 +1,36 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, PanResponder, Animated, TextInput, Image } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker, Polyline } from 'react-native-maps';
 import { StatusBar } from 'expo-status-bar';
 import * as Location from 'expo-location';
-import * as FileSystem from 'expo-file-system'; // Import FileSystem
+import * as FileSystem from 'expo-file-system';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import Foundation from '@expo/vector-icons/Foundation';
+import Ionicons from '@expo/vector-icons/Ionicons';
 
 export default function App() {
   const [location, setLocation] = useState(null);
   const [mapRegion, setMapRegion] = useState(null);
   const [errorMsg, setErrorMsg] = useState(null);
   const [showInputs, setShowInputs] = useState(false);
+  const [showRouteInputs, setShowRouteInputs] = useState(false);
+  const [showPolylineInputs, setShowPolylineInputs] = useState(false);
   const [start, setStart] = useState('');
   const [end, setEnd] = useState('');
-  const [isRecording, setIsRecording] = useState(false); // State to track recording
-  const [gpxData, setGpxData] = useState(''); // State to hold GPX-like data
+  const [isRecording, setIsRecording] = useState(false);
+  const [gpxData, setGpxData] = useState('');
+  const [routes, setRoutes] = useState([]); // To hold the loaded routes
+  const [currentRouteIndex, setCurrentRouteIndex] = useState(0); // Current route index
+  const [showPolyline, setShowPolyline] = useState(false); // To control polyline visibility
 
   const INITIAL_HEIGHT = 80;
   const MAX_HEIGHT = 250;
   const animatedHeight = useRef(new Animated.Value(INITIAL_HEIGHT)).current;
 
-  Location.setGoogleApiKey("YOUR_GOOGLE_API_KEY"); // Replace with your Google API Key
+  Location.setGoogleApiKey("YOUR_GOOGLE_API_KEY");
 
   useEffect(() => {
     (async () => {
@@ -49,7 +55,6 @@ export default function App() {
             longitudeDelta: 0.002,
           });
 
-          // If recording, update the GPX-like data
           if (isRecording) {
             const newGpxPoint = `
               <trkpt lat="${newLocation.coords.latitude}" lon="${newLocation.coords.longitude}">
@@ -66,7 +71,35 @@ export default function App() {
         }
       };
     })();
-  }, [isRecording]); // Add isRecording to the dependency array
+  }, [isRecording]);
+
+  useEffect(() => {
+    // Load GPX-like files from the sample_data directory
+    const loadRoutes = async () => {
+      const directory = `${FileSystem.documentDirectory}sample_data`;
+      const files = await FileSystem.readDirectoryAsync(directory);
+      const loadedRoutes = await Promise.all(
+        files.map(async (file) => {
+          const fileUri = `${directory}/${file}`;
+          const content = await FileSystem.readAsStringAsync(fileUri);
+          return { name: file.replace('.txt', ''), path: parseGpxData(content) }; // Replace with proper route name parsing if needed
+        })
+      );
+      setRoutes(loadedRoutes);
+    };
+
+    loadRoutes();
+  }, []);
+
+  const parseGpxData = (data) => {
+    const regex = /<trkpt lat="([^"]+)" lon="([^"]+)">/g;
+    const points = [];
+    let match;
+    while ((match = regex.exec(data))) {
+      points.push({ latitude: parseFloat(match[1]), longitude: parseFloat(match[2]) });
+    }
+    return points;
+  };
 
   const panResponder = useRef(
     PanResponder.create({
@@ -113,33 +146,116 @@ export default function App() {
     }
   };
 
-  const handleRecordPress = async () => {
-    setIsRecording((prev) => !prev); // Toggle recording state
-    if (!isRecording) {
-      setGpxData('<gpx>\n'); // Start GPX format
+  const handleConfirmStartEndNavPress = () => {
+    if (showInputs) {
+      Animated.timing(animatedHeight, {
+        // toValue: INITIAL_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowRouteInputs(false);
+      });
     } else {
-      setGpxData((prevData) => prevData + '</gpx>'); // End GPX format
-      await saveGpxData(); // Save data to file
+      Animated.timing(animatedHeight, {
+        toValue: MAX_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowInputs(true);
+      });
+    }
+  };
+
+  const handleWalkingPress = () => {
+    if (showRouteInputs) {
+      Animated.timing(animatedHeight, {
+        toValue: INITIAL_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowRouteInputs(false);
+      });
+    } else {
+      Animated.timing(animatedHeight, {
+        toValue: MAX_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowRouteInputs(true);
+      });
+    }
+  };
+
+  const handleWalkingConfirmPress = () => {
+    if (showPolylineInputs) {
+      Animated.timing(animatedHeight, {
+        toValue: INITIAL_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowPolylineInputs(false);
+      });
+    } else {
+      Animated.timing(animatedHeight, {
+        toValue: MAX_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowPolylineInputs(true);
+      });
+    }
+  };
+
+
+
+  const handleRecordPress = async () => {
+    setIsRecording((prev) => !prev);
+    if (!isRecording) {
+      setGpxData('<gpx>\n');
+    } else {
+      setGpxData((prevData) => prevData + '</gpx>');
+      await saveGpxData();
     }
   };
 
   const saveGpxData = async () => {
     try {
-      const directory = `${FileSystem.documentDirectory}sample_data`; // Path for sample_data folder
-      const fileUri = `${directory}/location_data.txt`; // Full path for the file
+      const directory = `${FileSystem.documentDirectory}sample_data`;
+      const fileUri = `${directory}/location_data.txt`;
 
-      // Check if the directory exists
       const dirInfo = await FileSystem.getInfoAsync(directory);
       if (!dirInfo.exists) {
-          await FileSystem.makeDirectoryAsync(directory, { intermediates: true }); // Create directory if it doesn't exist
+          await FileSystem.makeDirectoryAsync(directory, { intermediates: true });
       }
 
-      // Write the GPX data to the file
       await FileSystem.writeAsStringAsync(fileUri, gpxData);
       console.log('File saved successfully at:', fileUri);
     } catch (error) {
       console.error('Error saving file:', error);
     }
+  };
+
+  const togglePolyline = () => {
+    setShowPolyline((prev) => !prev);
+  };
+
+  const handleConfirmPress = () => {
+    setShowPolyline(true);
+    Animated.timing(animatedHeight, {
+      toValue: INITIAL_HEIGHT,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setShowInputs(false);
+    });
+  };
+
+  const handleLeftArrowPress = () => {
+    setCurrentRouteIndex((prev) => (prev === 0 ? routes.length - 1 : prev - 1));
+  };
+
+  const handleRightArrowPress = () => {
+    setCurrentRouteIndex((prev) => (prev === routes.length - 1 ? 0 : prev + 1));
   };
 
   if (!mapRegion) {
@@ -172,6 +288,10 @@ export default function App() {
             />
           </Marker>
         )}
+
+        {showPolyline && routes.length > 0 && (
+          <Polyline coordinates={routes[currentRouteIndex].path} strokeColor="#000" strokeWidth={4} />
+        )}
       </MapView>
 
       {errorMsg && <Text>{errorMsg}</Text>}
@@ -191,12 +311,12 @@ export default function App() {
             }),
           }],
         }]}>
-          <Text style={styles.routesText}>25 Routes</Text>
+          <Text style={styles.routesText}>Routes: {routes.length}</Text>
           <View style={styles.iconGroup}>
             <TouchableOpacity style={styles.iconButton} onPress={handlePlusPress}>
               <AntDesign name={showInputs ? "minuscircle" : "pluscircle"} size={32} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.iconButton}>
+            <TouchableOpacity style={styles.iconButton} onPress={handleWalkingPress}>
               <FontAwesome5 name="walking" size={32} color="white" />
             </TouchableOpacity>
           </View>
@@ -218,6 +338,44 @@ export default function App() {
             />
             <TouchableOpacity style={styles.iconBelowInputs} onPress={handleRecordPress}>
               <Foundation name="record" size={40} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {showRouteInputs && (
+          <View style={styles.inputContainer}>
+            <TextInput
+              style={styles.input}
+              placeholder="Start"
+              value={start}
+              onChangeText={setStart}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="End"
+              value={end}
+              onChangeText={setEnd}
+            />
+
+            <TouchableOpacity style={styles.iconBelowInputs} onPress={handleWalkingConfirmPress}>
+              <Ionicons name="checkmark" size={40} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {showPolylineInputs && (
+          <View style={styles.inputContainer}>
+            <View style={styles.routeSelection}>
+              <TouchableOpacity onPress={handleLeftArrowPress}>
+                <Text style={styles.arrowText}>&lt;</Text>
+              </TouchableOpacity>
+              <Text style={styles.routeName}>{routes.length > 0 ? routes[currentRouteIndex].name : 'Route #1'}</Text>
+              <TouchableOpacity onPress={handleRightArrowPress}>
+                <Text style={styles.arrowText}>&gt;</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity style={styles.iconBelowInputs} onPress={handleConfirmStartEndNavPress}>
+              <Ionicons name="checkmark" size={40} color="white" />
             </TouchableOpacity>
           </View>
         )}
@@ -324,6 +482,28 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 5,
     backgroundColor: '#fff',
+  },
+  routeSelection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+  },
+  arrowText: {
+    fontSize: 24,
+    color: 'white',
+    marginHorizontal: 20,
+  },
+  confirmButton: {
+    backgroundColor: '#4CAF50',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+    width: '100%',
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
   },
   menuLowerBar: {
     position: 'absolute',
