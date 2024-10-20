@@ -26,11 +26,40 @@ export default function App() {
   const [currentRouteIndex, setCurrentRouteIndex] = useState(0); // Current route index
   const [showPolyline, setShowPolyline] = useState(false); // To control polyline visibility
 
+  const [routeCur, setRouteCur] = useState(0); // Use a state variable
   const INITIAL_HEIGHT = 80;
   const MAX_HEIGHT = 250;
   const animatedHeight = useRef(new Animated.Value(INITIAL_HEIGHT)).current;
 
   Location.setGoogleApiKey("YOUR_GOOGLE_API_KEY");
+
+  const route_0 = [
+    // { latitude: 37.649103, longitude: -90.308248 },
+  ];
+
+  const route_1 = [
+    { latitude: 38.649366, longitude: -90.310737 },
+    { latitude: 38.649491, longitude: -90.309309 },
+    { latitude: 38.648778, longitude: -90.308468 },
+    { latitude: 38.649073, longitude: -90.307302 },
+    // { latitude: 37.649103, longitude: -90.308248 },
+  ];
+
+  const route_2 = [
+    { latitude: 38.649366, longitude: -90.310737 },
+    // { latitude: 38.649491, longitude: -90.309309 },
+    { latitude: 38.648778, longitude: -90.308468 },
+    { latitude: 38.649073, longitude: -90.307302 },
+    // { latitude: 37.649103, longitude: -90.308248 },
+  ];
+
+  const route_3 = [
+    { latitude: 38.649366, longitude: -90.310737 },
+    { latitude: 38.649491, longitude: -90.309309 },
+    // { latitude: 38.648778, longitude: -90.308468 },
+    { latitude: 38.649073, longitude: -90.307302 },
+    // { latitude: 37.649103, longitude: -90.308248 },
+  ];
 
   useEffect(() => {
     (async () => {
@@ -147,7 +176,7 @@ export default function App() {
   };
 
   const handleConfirmStartEndNavPress = () => {
-    if (showInputs) {
+    if (showRouteInputs) {
       Animated.timing(animatedHeight, {
         // toValue: INITIAL_HEIGHT,
         duration: 300,
@@ -167,6 +196,16 @@ export default function App() {
   };
 
   const handleWalkingPress = () => {
+    if (showPolylineInputs) {
+      Animated.timing(animatedHeight, {
+        toValue: INITIAL_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setRouteCur(0);
+        setShowPolylineInputs(false);
+      });
+    }
     if (showRouteInputs) {
       Animated.timing(animatedHeight, {
         toValue: INITIAL_HEIGHT,
@@ -187,6 +226,15 @@ export default function App() {
   };
 
   const handleWalkingConfirmPress = () => {
+    if (showRouteInputs) {
+      Animated.timing(animatedHeight, {
+        toValue: INITIAL_HEIGHT,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowRouteInputs(false);
+      });
+    }
     if (showPolylineInputs) {
       Animated.timing(animatedHeight, {
         toValue: INITIAL_HEIGHT,
@@ -255,8 +303,18 @@ export default function App() {
   };
 
   const handleRightArrowPress = () => {
+    if (routeCur === 0) {
+      setRouteCur(1);
+    }
+    if (routeCur === 1) {
+        setRouteCur(2);
+    } else if (routeCur === 2) {
+        setRouteCur(3);
+    } else if (routeCur === 3) {
+        setRouteCur(1);
+    }
     setCurrentRouteIndex((prev) => (prev === routes.length - 1 ? 0 : prev + 1));
-  };
+};
 
   if (!mapRegion) {
     return (
@@ -289,9 +347,22 @@ export default function App() {
           </Marker>
         )}
 
-        {showPolyline && routes.length > 0 && (
-          <Polyline coordinates={routes[currentRouteIndex].path} strokeColor="#000" strokeWidth={4} />
-        )}
+        <Polyline
+          coordinates={
+            routeCur === 0 ? route_0 :    
+            routeCur === 1 ? route_1 :
+            routeCur === 2 ? route_2 :
+            routeCur === 3 ? route_3 :
+            []
+          }
+          strokeColor={    
+            routeCur === 1 ? '#000000' :
+            routeCur === 2 ? '#FFFFFF' :
+            routeCur === 3 ? '#FF0000' :
+            []
+          }
+          strokeWidth={4}    // Width of the polyline
+        />
       </MapView>
 
       {errorMsg && <Text>{errorMsg}</Text>}
@@ -311,7 +382,7 @@ export default function App() {
             }),
           }],
         }]}>
-          <Text style={styles.routesText}>Routes: {routes.length}</Text>
+          <Text style={styles.routesText}>Routes: 3</Text>
           <View style={styles.iconGroup}>
             <TouchableOpacity style={styles.iconButton} onPress={handlePlusPress}>
               <AntDesign name={showInputs ? "minuscircle" : "pluscircle"} size={32} color="white" />
@@ -363,13 +434,14 @@ export default function App() {
           </View>
         )}
 
+
         {showPolylineInputs && (
           <View style={styles.inputContainer}>
             <View style={styles.routeSelection}>
               <TouchableOpacity onPress={handleLeftArrowPress}>
                 <Text style={styles.arrowText}>&lt;</Text>
               </TouchableOpacity>
-              <Text style={styles.routeName}>{routes.length > 0 ? routes[currentRouteIndex].name : 'Route #1'}</Text>
+              <Text style={[styles.routeText, { color: 'white' }]}>Route {routeCur}</Text>
               <TouchableOpacity onPress={handleRightArrowPress}>
                 <Text style={styles.arrowText}>&gt;</Text>
               </TouchableOpacity>
