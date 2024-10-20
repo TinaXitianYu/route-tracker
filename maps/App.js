@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import "'@/global.css'";
-import { GluestackUIProvider } from "@/'components/ui'/gluestack-ui-provider";
 import MapView, { Marker } from 'react-native-maps';
 import { StyleSheet, View, Button, Text } from 'react-native';
 import * as Location from 'expo-location';
@@ -42,20 +40,20 @@ export default function App() {
 
   if (!mapRegion) {
     return (
-      <GluestackUIProvider mode="light"><View style={styles.container}>
-          {errorMsg ? <Text>{errorMsg}</Text> : <Text>Fetching location...</Text>}
-          <Button title="Retry Location" onPress={userLocation} />
-        </View></GluestackUIProvider>
+      <View style={styles.container}>
+        {errorMsg ? <Text>{errorMsg}</Text> : <Text>Fetching location...</Text>}
+        <Button title="Retry Location" onPress={userLocation} />
+      </View>
     ); // Avoid rendering the map until the location is set
   }
 
   return (
-    <GluestackUIProvider mode="light"><View style={styles.container}>
-        <MapView style={styles.map} region={mapRegion}>
-          <Marker coordinate={mapRegion} title="Your Location" />
-        </MapView>
-        <Button title="Retry Location" onPress={userLocation} />
-      </View></GluestackUIProvider>
+    <View style={styles.container}>
+      <MapView style={styles.map} region={mapRegion}>
+        <Marker coordinate={mapRegion} title="Your Location" />
+      </MapView>
+      <Button title="Retry Location" onPress={userLocation} />
+    </View>
   );
 }
 
