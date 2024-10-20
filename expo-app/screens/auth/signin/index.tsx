@@ -36,24 +36,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle } from "lucide-react-native";
 import { GoogleIcon } from "./assets/icons/google";
 import { Pressable } from "@/components/ui/pressable";
-import useRouter from "@unitools/router";
+import { supabase } from 'utils/supabase'; // Supabase client import
+import { router } from "expo-router"; // Import router directly from "expo-router"
 import { AuthLayout } from "../layout";
+import { useSession } from "contexts/SessionContext";
 
-const USERS = [
-  {
-    email: "gabrial@gmail.com",
-    password: "Gabrial@123",
-  },
-  {
-    email: "tom@gmail.com",
-    password: "Tom@123",
-  },
-  {
-    email: "thomas@gmail.com",
-    password: "Thomas@1234",
-  },
-];
-
+// Validation schema for the form
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email(),
   password: z.string().min(1, "Password is required"),
@@ -76,48 +64,66 @@ const LoginWithLeftBackground = () => {
     emailValid: true,
     passwordValid: true,
   });
-
-  const onSubmit = (data: LoginSchemaType) => {
-    const user = USERS.find((element) => element.email === data.email);
-    if (user) {
-      if (user.password !== data.password)
-        setValidated({ emailValid: true, passwordValid: false });
-      else {
-        setValidated({ emailValid: true, passwordValid: true });
-        toast.show({
-          placement: "bottom right",
-          render: ({ id }) => {
-            return (
-              <Toast nativeID={id} variant="accent" action="success">
-                <ToastTitle>Logged in successfully!</ToastTitle>
-              </Toast>
-            );
-          },
-        });
-        reset();
-      }
+  const [loading, setLoading] = useState(false);
+  const session = useSession();
+console.log('Session in component:', session);
+  const onSubmit = async (data: LoginSchemaType) => {
+    setLoading(true);
+  
+    const { email, password } = data;
+  
+    // Supabase sign-in logic
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    console.log(useSession)
+  
+    if (signInError) {
+      setValidated({ emailValid: true, passwordValid: false });
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => (
+          <Toast nativeID={id} variant="danger">
+            <ToastTitle>{signInError.message}</ToastTitle>
+          </Toast>
+        ),
+      });
     } else {
-      setValidated({ emailValid: false, passwordValid: true });
+      setValidated({ emailValid: true, passwordValid: true });
+      toast.show({
+        placement: "bottom right",
+        render: ({ id }) => (
+          <Toast nativeID={id} variant="accent" action="success">
+            <ToastTitle>Logged in successfully!</ToastTitle>
+          </Toast>
+        ),
+      });
+      reset();
+  
+      // Redirect to home after successful login
+      router.push('/'); // Navigate to home after login
     }
+    setLoading(false);
   };
+  
   const [showPassword, setShowPassword] = useState(false);
 
   const handleState = () => {
-    setShowPassword((showState) => {
-      return !showState;
-    });
+    setShowPassword((showState) => !showState);
   };
+
   const handleKeyPress = () => {
     Keyboard.dismiss();
     handleSubmit(onSubmit)();
   };
-  const router = useRouter();
+
   return (
     <VStack className="max-w-[440px] w-full" space="md">
       <VStack className="md:items-center" space="md">
         <Pressable
           onPress={() => {
-            router.back();
+            router.back(); // Navigate back
           }}
         >
           <Icon
@@ -135,6 +141,7 @@ const LoginWithLeftBackground = () => {
       </VStack>
       <VStack className="w-full">
         <VStack space="xl" className="w-full">
+          {/* Email Input */}
           <FormControl
             isInvalid={!!errors?.email || !validated.emailValid}
             className="w-full"
@@ -146,16 +153,6 @@ const LoginWithLeftBackground = () => {
               defaultValue=""
               name="email"
               control={control}
-              rules={{
-                validate: async (value) => {
-                  try {
-                    await loginSchema.parseAsync({ email: value });
-                    return true;
-                  } catch (error: any) {
-                    return error.message;
-                  }
-                },
-              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input>
                   <InputField
@@ -177,7 +174,8 @@ const LoginWithLeftBackground = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          {/* Label Message */}
+          
+          {/* Password Input */}
           <FormControl
             isInvalid={!!errors.password || !validated.passwordValid}
             className="w-full"
@@ -189,16 +187,6 @@ const LoginWithLeftBackground = () => {
               defaultValue=""
               name="password"
               control={control}
-              rules={{
-                validate: async (value) => {
-                  try {
-                    await loginSchema.parseAsync({ password: value });
-                    return true;
-                  } catch (error: any) {
-                    return error.message;
-                  }
-                },
-              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input>
                   <InputField
@@ -224,7 +212,9 @@ const LoginWithLeftBackground = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
-          <HStack className="w-full justify-between ">
+
+          {/* Remember Me Checkbox */}
+          <HStack className="w-full justify-between">
             <Controller
               name="rememberme"
               defaultValue={false}
@@ -251,8 +241,10 @@ const LoginWithLeftBackground = () => {
             </Link>
           </HStack>
         </VStack>
-        <VStack className="w-full my-7 " space="lg">
-          <Button className="w-full" onPress={handleSubmit(onSubmit)}>
+
+        {/* Submit Button */}
+        <VStack className="w-full my-7" space="lg">
+          <Button className="w-full" onPress={handleSubmit(onSubmit)} disabled={loading}>
             <ButtonText className="font-medium">Log in</ButtonText>
           </Button>
           <Button
@@ -267,11 +259,13 @@ const LoginWithLeftBackground = () => {
             <ButtonIcon as={GoogleIcon} />
           </Button>
         </VStack>
+
+        {/* Sign Up Link */}
         <HStack className="self-center" space="sm">
           <Text size="md">Don't have an account?</Text>
           <Link href="/auth/signup">
             <LinkText
-              className="font-medium text-primary-700 group-hover/link:text-primary-600  group-hover/pressed:text-primary-700"
+              className="font-medium text-primary-700 group-hover/link:text-primary-600"
               size="md"
             >
               Sign up
