@@ -5,6 +5,7 @@ WUWay is a route-tracking app designed to streamline your campus navigation. It 
 The Schedule Page allows you to upload and extract your class schedule, storing it by date and time in the cloud database. By selecting today's date, you receive personalized route recommendations tailored to your schedule.
 Finally, the Profile Page displays your username and the number of routes you've contributed, along with a sign-out option.
 With WUWay, navigating campus has never been easier!
+As ambassadors of WashU, we hope you find our app helpful in freeing up time for the things that truly matter—like focusing on your health, wellness, and overall well-being.
 
 ### Web Platform
 
