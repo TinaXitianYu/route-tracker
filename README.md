@@ -6,10 +6,18 @@ The Schedule Page allows you to upload and extract your class schedule, storing 
 Finally, the Profile Page displays your username and the number of routes you've contributed, along with a sign-out option.
 With WUWay, navigating campus has never been easier!
 
-
 Web Platform
 
+
+![Web Image 1](demo_images/web1.jpg)
+
+![Web Image 2](demo_images/web2.jpg)
+
+![Web Image 3](demo_images/web2.jpg)
+
 Android Platform
+
+![Android Image](demo_images/android.png)
 
 IOS Platform
 
