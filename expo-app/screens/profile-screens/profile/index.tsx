@@ -1,18 +1,8 @@
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
+import { supabase } from 'utils/supabase';
 import { Box } from "@/components/ui/box";
 import { HStack } from "@/components/ui/hstack";
-import {
-  AlertCircleIcon,
-  ChevronDownIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
-  CloseIcon,
-  EditIcon,
-  Icon,
-  MenuIcon,
-  PhoneIcon,
-  SettingsIcon,
-} from "@/components/ui/icon";
+import { AlertCircleIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, CloseIcon, EditIcon, Icon, MenuIcon, PhoneIcon, SettingsIcon } from "@/components/ui/icon";
 import { Text } from "@/components/ui/text";
 import { VStack } from "@/components/ui/vstack";
 import { Pressable } from "@/components/ui/pressable";
@@ -21,27 +11,16 @@ import { Button, ButtonIcon, ButtonText } from "@/components/ui/button";
 import { Heading } from "@/components/ui/heading";
 import Image from "@unitools/image";
 import { ScrollView } from "@/components/ui/scroll-view";
-import {
-  Modal,
-  ModalBackdrop,
-  ModalBody,
-  ModalCloseButton,
-  ModalContent,
-  ModalHeader,
-} from "@/components/ui/modal";
 import { Input, InputField } from "@/components/ui/input";
-import {
-  Avatar,
-  AvatarBadge,
-  AvatarFallbackText,
-  AvatarImage,
-} from "@/components/ui/avatar";
+import { Avatar, AvatarBadge, AvatarFallbackText, AvatarImage } from "@/components/ui/avatar";
 import useRouter from "@unitools/router";
-import { ProfileIcon } from "./assets/icons/profile";
 import { SafeAreaView } from "@/components/ui/safe-area-view";
 import { Center } from "@/components/ui/center";
-import { cn } from "@gluestack-ui/nativewind-utils/cn";
-import { Keyboard, Platform } from "react-native";
+import { Keyboard, Alert,Platform } from "react-native";
+import { z } from "zod";
+import { Controller, useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ProfileIcon } from "./assets/icons/profile";
 import { SubscriptionIcon } from "./assets/icons/subscription";
 import { DownloadIcon } from "./assets/icons/download";
 import { FaqIcon } from "./assets/icons/faq";
@@ -50,33 +29,11 @@ import { HomeIcon } from "./assets/icons/home";
 import { GlobeIcon } from "./assets/icons/globe";
 import { InboxIcon } from "./assets/icons/inbox";
 import { HeartIcon } from "./assets/icons/heart";
-import { Divider } from "@/components/ui/divider";
-import { Controller, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import {
-  FormControl,
-  FormControlError,
-  FormControlErrorIcon,
-  FormControlErrorText,
-  FormControlLabel,
-  FormControlLabelText,
-} from "@/components/ui/form-control";
-import {
-  Select,
-  SelectBackdrop,
-  SelectContent,
-  SelectDragIndicator,
-  SelectDragIndicatorWrapper,
-  SelectIcon,
-  SelectInput,
-  SelectItem,
-  SelectPortal,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { CameraSparklesIcon } from "./assets/icons/camera-sparkles";
-import { EditPhotoIcon } from "./assets/icons/edit-photo";
-import { isWeb } from "@gluestack-ui/nativewind-utils/IsWeb";
+import { cn } from "@gluestack-ui/nativewind-utils/cn";
+import { Session } from '@supabase/supabase-js'
+import { router } from "expo-router";
+import { useSession } from 'contexts/SessionContext';
+// Define the schema for form validation (same as before)
 
 type MobileHeaderProps = {
   title: string;
@@ -126,11 +83,11 @@ type BottomTabs = {
 const bottomTabsList: BottomTabs[] = [
   {
     iconName: HomeIcon,
-    iconText: "Navigate",
+    iconText: "Schedule",
   },
   {
     iconName: InboxIcon,
-    iconText: "Track Path",
+    iconText: "Navigate",
   },
   {
     iconName: ProfileIcon,
@@ -178,13 +135,9 @@ const Sidebar = () => {
               <Pressable
                 onPress={() => handlePress(index)}
                 key={index}
-                className={`flex-row px-4 py-3 items-center gap-2 rounded
-              ${
-                index === selectedIndex
-                  ? "bg-background-950 "
-                  : "bg-background-0"
-              }
-              `}
+                className={`flex-row px-4 py-3 items-center gap-2 rounded ${
+                  index === selectedIndex ? "bg-background-950" : "bg-background-0"
+                }`}
               >
                 <Icon
                   as={item.iconName}
@@ -197,14 +150,14 @@ const Sidebar = () => {
               `}
                 />
                 <Text
-                  className={`
-              ${
+                  className={
+             `${
                 index === selectedIndex
                   ? "text-typography-0"
                   : "text-typography-700"
-              }
+              }`
 
-              `}
+              }
                 >
                   {item.iconText}
                 </Text>
@@ -219,35 +172,31 @@ const Sidebar = () => {
               <Pressable
                 onPress={() => handlePressResources(index)}
                 key={index}
-                className={`flex-row px-4 py-3 items-center gap-2 rounded
+                className={ `flex-row px-4 py-3 items-center gap-2 rounded
               ${
                 index === selectedIndexResources
                   ? "bg-background-950 "
                   : "bg-background-0"
               }
-              `}
+             ` }
               >
-                <Icon
-                  as={item.iconName}
-                  className={`
-              ${
-                index === selectedIndexResources
-                  ? "stroke-background-0"
-                  : "stroke-background-800"
-              }
-              
-              h-10 w-10
-              `}
-                />
+               <Icon
+  as={item.iconName}
+  className={`h-10 w-10 ${
+    index === selectedIndexResources
+      ? "stroke-background-0"
+      : "stroke-background-800"
+  }`}
+/>
                 <Text
-                  className={`
-              ${
+                  className={
+              `${
                 index === selectedIndexResources
                   ? "text-typography-0"
                   : "text-typography-700"
-              }
+              }`
 
-              `}
+              }
                 >
                   {item.iconText}
                 </Text>
@@ -307,7 +256,7 @@ function MobileFooter({ footerIcons }: { footerIcons: any }) {
             <Pressable
               className="px-0.5 flex-1 flex-col items-center"
               key={index}
-              onPress={() => router.push("/news-feed/news-and-feed")}
+              onPress={() => router.push("/home-map/map/")}
             >
               <Icon
                 as={item.iconName}
@@ -416,16 +365,97 @@ const accountData: AccountCardType[] = [
     endIcon: ChevronRightIcon,
   },
 ];
-const MainContent = () => {
-  const [showModal, setShowModal] = useState(false);
+type ProfileProps = {
+  session: Session;
+};
+const MainContent = ({ session }: { session: Session }) => {
+  const [loading, setLoading] = useState(true);
+  const [username, setUsername] = useState('');
+  const [website, setWebsite] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+ 
+  const {
+    control,
+    formState: { errors },
+    handleSubmit,
+  } = useForm({
+    resolver: zodResolver(userSchema),
+  });
+
+  useEffect(() => {
+    console.log("hi")
+    if (session){getProfile();
+    }else {
+      router.push("auth/signin")
+    }
+  }, [session]);
+
+  async function getProfile() {
+    try {
+      setLoading(true);
+      if (!session?.user) throw new Error('No user on the session!');
+
+      const { data, error, status } = await supabase
+        .from('profiles')
+        .select(`username, website, avatar_url`)
+        .eq('id', session?.user.id)
+        .single();
+
+      if (error && status !== 406) {
+        throw error;
+      }
+
+      if (data) {
+        setUsername(data.username);
+        setWebsite(data.website);
+        setAvatarUrl(data.avatar_url);
+        console.log(username)
+        console.log(website)
+        console.log(avatarUrl)
+      }else {
+        console.log("no data")
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function updateProfile({ username, website, avatar_url }) {
+    try {
+      setLoading(true);
+      if (!session?.user) throw new Error('No user on the session!');
+
+      const updates = {
+        id: session?.user.id,
+        username,
+        website,
+        avatar_url,
+        updated_at: new Date(),
+      };
+
+      const { error } = await supabase.from('profiles').upsert(updates);
+      if (error) {
+        throw error;
+      }
+    } catch (error) {
+      if (error instanceof Error) {
+        Alert.alert(error.message);
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
 
   return (
     <VStack className="h-full w-full mb-16 md:mb-0">
-      <ModalComponent showModal={showModal} setShowModal={setShowModal} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
-          paddingBottom: isWeb ? 0 : 160,
+          paddingBottom: 160,
           flexGrow: 1,
         }}
       >
@@ -439,12 +469,6 @@ const MainContent = () => {
               contentFit="cover"
             />
           </Box>
-          <HStack className="absolute pt-6 px-10 hidden md:flex">
-            <Text className="text-typography-900 font-roboto">
-              home &gt; {` `}
-            </Text>
-            <Text className="font-semibold text-typography-900 ">profile</Text>
-          </HStack>
           <Center className="absolute md:mt-14 mt-6 w-full md:px-10 md:pt-6 pb-4">
             <VStack space="lg" className="items-center">
               <Avatar size="2xl" className="bg-primary-600">
@@ -452,70 +476,50 @@ const MainContent = () => {
                   alt="Profile Image"
                   height={"100%"}
                   width={"100%"}
-                  source={require("@/assets/profile-screens/profile/image.png")}
+                  source={avatarUrl ? { uri: avatarUrl } : require("@/assets/profile-screens/profile/image.png")}
                 />
                 <AvatarBadge />
               </Avatar>
-              {/* going have to pull current session account variables */}
               <VStack className="gap-1 w-full items-center">
                 <Text size="2xl" className="font-roboto text-dark">
-                  Test User 
+                  {username}
                 </Text>
-                <Text className="font-roboto text-sm text-typograpphy-700">
-                  China
+                <Text className="font-roboto text-sm text-typography-700">
+                  {website}
                 </Text>
               </VStack>
-              <>
-                {userData.map((item, index) => {
-                  return (
-                    <HStack className="items-center gap-1" key={index}>
-                      <VStack className="py-3 px-4 items-center" space="xs">
-                        <Text className="text-dark font-roboto font-semibold justify-center items-center">
-                          {item.routes}
-                        </Text>
-                        <Text className="text-dark text-xs font-roboto">
-                          {item.routesText}
-                        </Text>
-                      </VStack>
-                      <Divider orientation="vertical" className="h-10" />
-                      <VStack className="py-3 px-4 items-center" space="xs">
-                        <Text className="text-dark font-roboto font-semibold">
-                          {item.time_saved}
-                        </Text>
-                        <Text className="text-dark text-xs font-roboto">
-                          {item.time_savedText}
-                        </Text>
-                      </VStack>
-                    </HStack>
-                  );
-                })}
-              </>
             </VStack>
           </Center>
+
           <VStack className="mx-6" space="2xl">
             <Heading className="font-roboto" size="xl">
               Preferences
             </Heading>
             <VStack className="py-2 px-4 border rounded-xl border-border-300 justify-between items-center">
-              {accountData.map((item, index) => {
-                return (
-                  <React.Fragment key={index}>
-                    <HStack
-                      space="2xl"
-                      className="justify-between items-center w-full flex-1 py-3 px-2"
-                    >
-                      <HStack className="items-center" space="md">
-                        <Icon as={item.iconName} className="stroke-[#747474]" />
-                        <Text size="lg">{item.subText}</Text>
-                      </HStack>
-                      <Icon as={item.endIcon} />
-                    </HStack>
-                    {accountData.length - 1 !== index && (
-                      <Divider className="my-1" />
-                    )}
-                  </React.Fragment>
-                );
-              })}
+              <VStack space="md">
+                <Input label="Username">
+                  <InputField
+                    placeholder="Username"
+                    value={username}
+                    onChangeText={(text) => setUsername(text)}
+                  />
+                </Input>
+                <Input label="Website">
+                  <InputField
+                    placeholder="Website"
+                    value={website}
+                    onChangeText={(text) => setWebsite(text)}
+                  />
+                </Input>
+              </VStack>
+
+              <Button
+                title={loading ? 'Loading ...' : 'Update'}
+                onPress={handleSubmit((data) => updateProfile({ ...data, avatar_url: avatarUrl }))}
+                disabled={loading}
+              >
+                <ButtonText>Save Changes</ButtonText>
+              </Button>
             </VStack>
           </VStack>
         </VStack>
@@ -523,6 +527,8 @@ const MainContent = () => {
     </VStack>
   );
 };
+
+
 const MobileScreen = () => {
   const {
     control,
@@ -1422,10 +1428,12 @@ const ModalComponent = ({
   );
 };
 export const Profile = () => {
+  const session = useSession();
+  console.log(session)
   return (
     <SafeAreaView className="h-full w-full">
-      <DashboardLayout title="Navigate" isSidebarVisible={true}>
-        <MainContent />
+      <DashboardLayout title="Schedule" isSidebarVisible={true}>
+        <MainContent session={session}/>
       </DashboardLayout>
       <MobileFooter footerIcons={bottomTabsList} />
     </SafeAreaView>
