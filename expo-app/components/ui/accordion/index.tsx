@@ -31,6 +31,7 @@ const accordionStyle = tva({
   },
 });
 const accordionItemStyle = tva({
+  base: 'py-3 px-4',
   parentVariants: {
     variant: {
       filled: 'bg-background-0',
@@ -65,7 +66,7 @@ const accordionContentTextStyle = tva({
   base: 'text-typography-700 font-normal',
   parentVariants: {
     size: {
-      sm: 'text-sm ',
+      sm: 'text-sm',
       md: 'text-base',
       lg: 'text-lg',
     },
@@ -75,10 +76,10 @@ const accordionHeaderStyle = tva({
   base: 'mx-0 my-0',
 });
 const accordionContentStyle = tva({
-  base: 'px-5 mt-2 pb-5',
+  base: 'mt-4',
 });
 const accordionTriggerStyle = tva({
-  base: 'w-full py-5 px-5 flex-row justify-between items-center web:outline-none focus:outline-none data-[disabled=true]:opacity-40 data-[disabled=true]:cursor-not-allowed data-[focus-visible=true]:bg-background-50',
+  base: 'w-full flex-row justify-between items-center web:outline-none focus:outline-none data-[disabled=true]:opacity-40 data-[disabled=true]:cursor-not-allowed data-[focus-visible=true]:bg-background-50',
 });
 
 type IPrimitiveIcon = {
@@ -90,11 +91,12 @@ type IPrimitiveIcon = {
   stroke?: string;
   as?: React.ElementType;
   className?: string;
+  classNameColor?: string;
 };
 
 const PrimitiveIcon = React.forwardRef<
   React.ElementRef<typeof Svg>,
-  IPrimitiveIcon & React.ComponentPropsWithoutRef<typeof Svg>
+  IPrimitiveIcon
 >(
   (
     {
@@ -102,6 +104,7 @@ const PrimitiveIcon = React.forwardRef<
       width,
       fill,
       color,
+      classNameColor,
       size,
       stroke = 'currentColor',
       as: AsComp,
@@ -109,6 +112,7 @@ const PrimitiveIcon = React.forwardRef<
     },
     ref
   ) => {
+    color = color ?? classNameColor;
     const sizeProps = useMemo(() => {
       if (size) return { size };
       if (height && width) return { height, width };
@@ -117,29 +121,21 @@ const PrimitiveIcon = React.forwardRef<
       return {};
     }, [size, height, width]);
 
-    const colorProps =
-      stroke === 'currentColor' && color !== undefined ? color : stroke;
+    let colorProps = {};
+    if (fill) {
+      colorProps = { ...colorProps, fill: fill };
+    }
+    if (stroke !== 'currentColor') {
+      colorProps = { ...colorProps, stroke: stroke };
+    } else if (stroke === 'currentColor' && color !== undefined) {
+      colorProps = { ...colorProps, stroke: color };
+    }
 
     if (AsComp) {
-      return (
-        <AsComp
-          ref={ref}
-          fill={fill}
-          {...props}
-          {...sizeProps}
-          stroke={colorProps}
-        />
-      );
+      return <AsComp ref={ref} {...props} {...sizeProps} {...colorProps} />;
     }
     return (
-      <Svg
-        ref={ref}
-        height={height}
-        width={width}
-        fill={fill}
-        stroke={colorProps}
-        {...props}
-      />
+      <Svg ref={ref} height={height} width={width} {...colorProps} {...props} />
     );
   }
 );
@@ -169,6 +165,7 @@ cssInterop(UIAccordion, { className: 'style' });
 cssInterop(UIAccordion.Item, { className: 'style' });
 cssInterop(UIAccordion.Header, { className: 'style' });
 cssInterop(UIAccordion.Trigger, { className: 'style' });
+//@ts-ignore
 cssInterop(UIAccordion.Icon, { className: 'style' });
 cssInterop(UIAccordion.TitleText, { className: 'style' });
 cssInterop(UIAccordion.Content, { className: 'style' });
@@ -180,9 +177,8 @@ cssInterop(UIAccordion.Icon, {
     nativeStyleToProp: {
       height: true,
       width: true,
-      // @ts-ignore
       fill: true,
-      color: true,
+      color: 'classNameColor',
       stroke: true,
     },
   },

@@ -37,8 +37,10 @@ import { AlertTriangle } from "lucide-react-native";
 import { GoogleIcon } from "./assets/icons/google";
 import { Pressable } from "@/components/ui/pressable";
 import useRouter from "@unitools/router";
+import { supabase } from 'utils/supabase';  // Supabase client import
 import { AuthLayout } from "../layout";
 
+// Define sign-up validation schema
 const signUpSchema = z.object({
   email: z.string().min(1, "Email is required").email(),
   password: z
@@ -75,51 +77,70 @@ const SignUpWithLeftBackground = () => {
     resolver: zodResolver(signUpSchema),
   });
   const toast = useToast();
+  const [loading, setLoading] = useState(false);
 
-  const onSubmit = (data: SignUpSchemaType) => {
+  const onSubmit = async (data: SignUpSchemaType) => {
     if (data.password === data.confirmpassword) {
-      toast.show({
-        placement: "bottom right",
-        render: ({ id }) => {
-          return (
-            <Toast nativeID={id} variant="accent" action="success">
-              <ToastTitle>Success</ToastTitle>
-            </Toast>
-          );
-        },
+      setLoading(true);
+
+      // Supabase sign-up logic
+      const { error, data: { session } } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
       });
-      reset();
+
+      if (error) {
+        toast.show({
+          placement: "bottom right",
+          render: ({ id }) => (
+            <Toast nativeID={id} variant="danger">
+              <ToastTitle>{error.message}</ToastTitle>
+            </Toast>
+          ),
+        });
+      } else {
+        toast.show({
+          placement: "bottom right",
+          render: ({ id }) => (
+            <Toast nativeID={id} variant="accent" action="success">
+              <ToastTitle>
+                {session ? "Signed up successfully!" : "Please check your inbox for verification"}
+              </ToastTitle>
+            </Toast>
+          ),
+        });
+        reset();
+      }
+
+      setLoading(false);
     } else {
       toast.show({
         placement: "bottom right",
-        render: ({ id }) => {
-          return (
-            <Toast nativeID={id} variant="accent" action="error">
-              <ToastTitle>Passwords do not match</ToastTitle>
-            </Toast>
-          );
-        },
+        render: ({ id }) => (
+          <Toast nativeID={id} variant="danger">
+            <ToastTitle>Passwords do not match</ToastTitle>
+          </Toast>
+        ),
       });
     }
   };
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleState = () => {
-    setShowPassword((showState) => {
-      return !showState;
-    });
+    setShowPassword((showState) => !showState);
   };
   const handleConfirmPwState = () => {
-    setShowConfirmPassword((showState) => {
-      return !showState;
-    });
+    setShowConfirmPassword((showState) => !showState);
   };
   const handleKeyPress = () => {
     Keyboard.dismiss();
     handleSubmit(onSubmit)();
   };
+
   const router = useRouter();
+
   return (
     <VStack className="max-w-[440px] w-full" space="md">
       <VStack className="md:items-center" space="md">
@@ -143,6 +164,7 @@ const SignUpWithLeftBackground = () => {
       </VStack>
       <VStack className="w-full">
         <VStack space="xl" className="w-full">
+          {/* Email Input */}
           <FormControl isInvalid={!!errors.email}>
             <FormControlLabel>
               <FormControlLabelText>Email</FormControlLabelText>
@@ -151,16 +173,6 @@ const SignUpWithLeftBackground = () => {
               name="email"
               defaultValue=""
               control={control}
-              rules={{
-                validate: async (value) => {
-                  try {
-                    await signUpSchema.parseAsync({ email: value });
-                    return true;
-                  } catch (error: any) {
-                    return error.message;
-                  }
-                },
-              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input>
                   <InputField
@@ -183,6 +195,8 @@ const SignUpWithLeftBackground = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
+
+          {/* Password Input */}
           <FormControl isInvalid={!!errors.password}>
             <FormControlLabel>
               <FormControlLabelText>Password</FormControlLabelText>
@@ -191,18 +205,6 @@ const SignUpWithLeftBackground = () => {
               defaultValue=""
               name="password"
               control={control}
-              rules={{
-                validate: async (value) => {
-                  try {
-                    await signUpSchema.parseAsync({
-                      password: value,
-                    });
-                    return true;
-                  } catch (error: any) {
-                    return error.message;
-                  }
-                },
-              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input>
                   <InputField
@@ -228,6 +230,8 @@ const SignUpWithLeftBackground = () => {
               </FormControlErrorText>
             </FormControlError>
           </FormControl>
+
+          {/* Confirm Password Input */}
           <FormControl isInvalid={!!errors.confirmpassword}>
             <FormControlLabel>
               <FormControlLabelText>Confirm Password</FormControlLabelText>
@@ -236,18 +240,6 @@ const SignUpWithLeftBackground = () => {
               defaultValue=""
               name="confirmpassword"
               control={control}
-              rules={{
-                validate: async (value) => {
-                  try {
-                    await signUpSchema.parseAsync({
-                      password: value,
-                    });
-                    return true;
-                  } catch (error: any) {
-                    return error.message;
-                  }
-                },
-              }}
               render={({ field: { onChange, onBlur, value } }) => (
                 <Input>
                   <InputField
@@ -277,6 +269,7 @@ const SignUpWithLeftBackground = () => {
             </FormControlError>
           </FormControl>
 
+          {/* Terms and Conditions Checkbox */}
           <Controller
             name="rememberme"
             defaultValue={false}
@@ -300,8 +293,9 @@ const SignUpWithLeftBackground = () => {
           />
         </VStack>
 
+        {/* Submit Button */}
         <VStack className="w-full my-7" space="lg">
-          <Button className="w-full" onPress={handleSubmit(onSubmit)}>
+          <Button className="w-full" onPress={handleSubmit(onSubmit)} disabled={loading}>
             <ButtonText className="font-medium">Sign up</ButtonText>
           </Button>
           <Button
@@ -316,6 +310,8 @@ const SignUpWithLeftBackground = () => {
             <ButtonIcon as={GoogleIcon} />
           </Button>
         </VStack>
+        
+        {/* Login Link */}
         <HStack className="self-center" space="sm">
           <Text size="md">Already have an account?</Text>
           <Link href="/auth/signin">

@@ -11,6 +11,8 @@ import { useEffect } from "react";
 import { GluestackUIProvider } from "@/components/ui/gluestack-ui-provider";
 import { useColorScheme } from "@/components/useColorScheme";
 import "../global.css";
+import { SessionContextProvider } from "../contexts/SessionContext"; // Adjust the path as necessary
+
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -53,18 +55,22 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <GluestackUIProvider mode={(colorScheme ?? "light") as "light" | "dark"}>
-      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="signin" />
-          <Stack.Screen name="signup" />
-          <Stack.Screen name="forgot-password" />
-          <Stack.Screen name="create-password" />
-          <Stack.Screen name="news-feed" />
-          <Stack.Screen name="dashboard" />
-          <Stack.Screen name="profile" />
-        </Stack>
-      </ThemeProvider>
-    </GluestackUIProvider>
+    <SessionContextProvider>
+      <GluestackUIProvider mode={(colorScheme ?? "light") as "light" | "dark"}>
+        <ThemeProvider
+          value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="signin" />
+            <Stack.Screen name="signup" />
+            <Stack.Screen name="forgot-password" />
+            <Stack.Screen name="create-password" />
+            <Stack.Screen name="news-feed" />
+            <Stack.Screen name="dashboard" />
+            <Stack.Screen name="profile" />
+          </Stack>
+        </ThemeProvider>
+      </GluestackUIProvider>
+    </SessionContextProvider>
   );
 }
